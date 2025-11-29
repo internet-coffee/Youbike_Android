@@ -19,11 +19,11 @@
 * 黑暗模式
 * 跟隨系統主題
 * 自動刷新
-* 附近站點(需要GMS)
 
 ## 螢幕截圖
 
-<img src="https://github.com/user-attachments/assets/6551e545-cc65-4de0-9653-79c311717464" width=30%  />
+<img src="https://github.com/user-attachments/assets/593a2b5d-427c-4f3a-8b97-505b54ebaf26" width=30%  />
+<img src="https://github.com/user-attachments/assets/dbededa9-9b29-4bb4-8ec8-1d041c38c8b5" width=30%  />
 
 
 ## 資料來源
