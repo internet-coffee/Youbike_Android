@@ -1,8 +1,10 @@
 package com.android.youbike.data
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Immutable
 @Serializable
 data class StationInfo(
     @SerialName("station_no") val stationNo: String,
@@ -28,6 +30,7 @@ data class RetValData(
     @SerialName("data") val data: List<VehicleInfo>
 )
 
+@Immutable
 @Serializable
 data class VehicleInfo(
     @SerialName("station_no") val stationNo: String,
@@ -35,6 +38,7 @@ data class VehicleInfo(
     @SerialName("available_spaces_detail") val vehicleDetails: VehicleDetail
 )
 
+@Immutable
 @Serializable
 data class VehicleDetail(
     @SerialName("yb2") val youbike2: Int,

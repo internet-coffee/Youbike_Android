@@ -1,6 +1,7 @@
 package com.android.youbike.ui.viewmodel
 
 import android.app.Application
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.youbike.data.StationInfo
@@ -8,10 +9,15 @@ import com.android.youbike.data.StationRequest
 import com.android.youbike.data.UserPreferencesRepository
 import com.android.youbike.data.VehicleInfo
 import com.android.youbike.data.YouBikeApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
 
+@Immutable
 data class StationResult(
     val info: StationInfo,
     val isFavorite: Boolean = false,
@@ -20,6 +26,7 @@ data class StationResult(
     val emptySpaces: Int? = null
 )
 
+@Immutable
 data class YouBikeUiState(
     val searchResults: List<StationResult> = emptyList(),
     val favoriteStations: List<StationResult> = emptyList(),
@@ -53,7 +60,8 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
 
     fun toggleFavorite(stationInfo: StationInfo) {
         viewModelScope.launch {
-            val currentFavorites = userPreferencesRepository.favoriteStations.first().toMutableList()
+            val currentFavorites =
+                userPreferencesRepository.favoriteStations.first().toMutableList()
             val existing = currentFavorites.find { it.stationNo == stationInfo.stationNo }
 
             if (existing != null) {
@@ -78,23 +86,48 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
 
     fun searchStations(query: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, isSearching = true, errorMessage = null, currentQuery = query) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    isSearching = true,
+                    errorMessage = null,
+                    currentQuery = query
+                )
+            }
             try {
                 val stationsToSearch = allStationsCache ?: fetchAndCacheAllStations()
-                val filteredStations = if (query.isBlank()) stationsToSearch else stationsToSearch.filter {
-                    it.name.contains(query, ignoreCase = true) || it.address.contains(query, ignoreCase = true) || it.stationNo == query
-                }
-                val stationsToQuery = if (filteredStations.size > 100) filteredStations.take(100) else filteredStations
-                val favoriteIds = userPreferencesRepository.favoriteStations.first().map { it.stationNo }.toSet()
+                val filteredStations =
+                    if (query.isBlank()) stationsToSearch else stationsToSearch.filter {
+                        it.name.contains(query, ignoreCase = true) || it.address.contains(
+                            query,
+                            ignoreCase = true
+                        ) || it.stationNo == query
+                    }
+                val stationsToQuery =
+                    if (filteredStations.size > 100) filteredStations.take(100) else filteredStations
+                val favoriteIds =
+                    userPreferencesRepository.favoriteStations.first().map { it.stationNo }.toSet()
                 fetchParkingInfoForSearch(stationsToQuery, favoriteIds)
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "發生錯誤：${e.message}") }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "發生錯誤：${e.message}"
+                    )
+                }
             }
         }
     }
 
     fun clearSearchResults() {
-        _uiState.update { it.copy(searchResults = emptyList(), isSearching = false, errorMessage = null, currentQuery = "") }
+        _uiState.update {
+            it.copy(
+                searchResults = emptyList(),
+                isSearching = false,
+                errorMessage = null,
+                currentQuery = ""
+            )
+        }
     }
 
     fun refreshFavoriteStations() {
@@ -114,7 +147,13 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                             emptySpaces = vehicleInfo?.emptySpaces
                         )
                     }
-                    _uiState.update { it.copy(favoriteStations = results, isRefreshing = false, toastMessage = "刷新成功") }
+                    _uiState.update {
+                        it.copy(
+                            favoriteStations = results,
+                            isRefreshing = false,
+                            toastMessage = "刷新成功"
+                        )
+                    }
                 } else {
                     _uiState.update { it.copy(isRefreshing = false) }
                 }
@@ -162,7 +201,13 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                         emptySpaces = vehicleInfo?.emptySpaces ?: 0
                     )
                 }
-                _uiState.update { it.copy(searchResults = results, isRefreshing = false, toastMessage = "刷新成功") }
+                _uiState.update {
+                    it.copy(
+                        searchResults = results,
+                        isRefreshing = false,
+                        toastMessage = "刷新成功"
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -212,7 +257,10 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private suspend fun fetchParkingInfoForSearch(stations: List<StationInfo>, favoriteIds: Set<String>) {
+    private suspend fun fetchParkingInfoForSearch(
+        stations: List<StationInfo>,
+        favoriteIds: Set<String>
+    ) {
         if (stations.isEmpty()) {
             _uiState.update { it.copy(searchResults = emptyList(), isLoading = false) }
             return
@@ -231,7 +279,12 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             }
             _uiState.update { it.copy(searchResults = results, isLoading = false) }
         } catch (e: Exception) {
-            _uiState.update { it.copy(isLoading = false, errorMessage = "查詢車輛資訊時發生錯誤：${e.message}") }
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    errorMessage = "查詢車輛資訊時發生錯誤：${e.message}"
+                )
+            }
         }
     }
 
@@ -240,7 +293,9 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
         val vehicleDataMap = mutableMapOf<String, VehicleInfo>()
         stationIds.chunked(20).forEach { batchIds ->
             val response = YouBikeApi.retrofitService.getParkingInfo(StationRequest(batchIds))
-            response.retVal.data.forEach { vehicleInfo -> vehicleDataMap[vehicleInfo.stationNo] = vehicleInfo }
+            response.retVal.data.forEach { vehicleInfo ->
+                vehicleDataMap[vehicleInfo.stationNo] = vehicleInfo
+            }
         }
         return vehicleDataMap
     }
