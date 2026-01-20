@@ -9,9 +9,12 @@ import com.android.youbike.data.StationRequest
 import com.android.youbike.data.UserPreferencesRepository
 import com.android.youbike.data.VehicleInfo
 import com.android.youbike.data.YouBikeApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,6 +41,7 @@ data class YouBikeUiState(
     val currentQuery: String = ""
 )
 
+@OptIn(FlowPreview::class)
 class YouBikeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(YouBikeUiState())
@@ -48,9 +52,12 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
 
     init {
         viewModelScope.launch {
-            userPreferencesRepository.favoriteStations.collect { favoriteStationInfos ->
-                loadAndRefreshFavoriteStations(favoriteStationInfos)
-            }
+            userPreferencesRepository.favoriteStations
+                .debounce(100)
+                .distinctUntilChanged()
+                .collect { favoriteStationInfos ->
+                    loadAndRefreshFavoriteStations(favoriteStationInfos)
+                }
         }
     }
 
