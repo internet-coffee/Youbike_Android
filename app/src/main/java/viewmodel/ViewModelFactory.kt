@@ -1,4 +1,4 @@
-package com.android.youbike.ui.viewmodel
+package viewmodel
 
 import android.app.Application
 import androidx.lifecycle.ViewModel

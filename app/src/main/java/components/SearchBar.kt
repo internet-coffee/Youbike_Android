@@ -1,4 +1,4 @@
-package com.android.youbike.ui.components
+package components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,7 +53,7 @@ fun MySearchBar(
                     keyboardController?.hide()
                 }
             },
-        placeholder = { Text("搜尋 Youbike 站點") },
+        placeholder = { Text("搜尋 YouBike 站點") },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,

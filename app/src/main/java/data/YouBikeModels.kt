@@ -1,4 +1,4 @@
-package com.android.youbike.data
+package data
 
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
