@@ -1,30 +1,33 @@
-# --- Retrofit ---
-# Retrofit 會在執行時透過反射建立 API 實例，必須保留
--keepattributes Signature
--keepattributes Exceptions
+-keepattributes SourceFile, LineNumberTable
+
+-keepattributes Signature, Exceptions, *Annotation*
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+
 -keepclasseswithmembers interface * {
     @retrofit2.http.* <methods>;
 }
 
-# --- Kotlinx Serialization ---
-# 確保序列化相關的類別不被混淆
--keepattributes *Annotation*, InnerClasses
+-keep interface data.YouBikeApiService { *; }
+
 -dontwarn kotlinx.serialization.**
--keep class kotlinx.serialization.** { *; }
--keep interface kotlinx.serialization.** { *; }
--keepattributes SerializedName
+-keepclassmembers class * {
+    @kotlinx.serialization.SerialName <fields>;
+    *** Companion;
+}
 
-# --- 您專案的資料模型 (Data Classes) ---
-# 為了保險起見，保留您的資料模型不被改名，避免 JSON 解析失敗
-# 請確保這裡的路徑與您的 package 名稱一致
--keep class com.android.youbike.data.** { *; }
+-keep @kotlinx.serialization.Serializable class * { *; }
+-keepnames class data.** {
+    *** $serializer;
+}
 
-# --- Jetpack Compose (通常不需要額外設定，但為了保險) ---
--keepattributes SourceFile,LineNumberTable
+-keep class data.** { *; }
+
+-keep class viewmodel.YouBikeUiState { *; }
+-keep class viewmodel.StationResult { *; }
 
 -keep,allowobfuscation,allowshrinking interface retrofit2.Call
- -keep,allowobfuscation,allowshrinking class retrofit2.Response
- # With R8 full mode generic signatures are stripped for classes that are not
- # kept. Suspend functions are wrapped in continuations where the type argument
- # is used.
- -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+
+-dontwarn okhttp3.**
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory
