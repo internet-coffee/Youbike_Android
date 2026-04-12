@@ -83,15 +83,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("settings") {
-                        val currentInterval by viewModel.userPreferencesRepository
-                            .refreshInterval.collectAsState(initial = 0)
 
                         SettingsScreen(
                             navController = navController,
-                            currentInterval = currentInterval,
-                            onIntervalSelected = { seconds ->
-                                viewModel.updateRefreshInterval(seconds)
-                            }
                         )
                     }
                 }
@@ -169,9 +163,7 @@ fun MainScreen(
                     }
 
                     else -> {
-                        if (!uiState.isLoading) {
-                            EmptyPlaceholder(isSearching = uiState.isSearching)
-                        }
+                        EmptyPlaceholder(isSearching = uiState.isSearching)
                     }
                 }
             }
@@ -181,8 +173,8 @@ fun MainScreen(
 
 @Composable
 private fun StationList(
-    stations: List<viewmodel.StationResult>,
-    onFavoriteToggle: (data.StationInfo) -> Unit,
+    stations: List<StationResult>,
+    onFavoriteToggle: (StationInfo) -> Unit,
     contentPadding: PaddingValues
 ) {
     LazyColumn(

@@ -23,9 +23,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 
 private data class SearchIndex(
     val info: StationInfo,
@@ -62,36 +59,8 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
     private var allStationsCache: List<StationInfo>? = null
     private var stationIdMap: Map<String, StationInfo> = emptyMap()
     private var searchableIndex: List<SearchIndex> = emptyList()
-    private var refreshJob: Job? = null
 
     val userPreferencesRepository = UserPreferencesRepository(application)
-
-    init {
-        startAutoRefreshTimer()
-    }
-
-    private fun startAutoRefreshTimer() {
-        viewModelScope.launch {
-            userPreferencesRepository.refreshInterval.collectLatest { interval ->
-                refreshJob?.cancel() // 取消舊任務
-
-                if (interval > 0) {
-                    refreshJob = launch {
-                        while (true) {
-                            delay(interval * 1000L)
-                            if (!uiState.value.isRefreshing) {
-                                if (uiState.value.isSearching) {
-                                    refreshSearchResults(uiState.value.currentQuery)
-                                } else {
-                                    refreshFavoriteStations()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     init {
         viewModelScope.launch {
@@ -182,7 +151,7 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                 SearchIndex(it, "${it.name}|${it.address}|${it.stationNo}".lowercase())
             }
             stations
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             emptyList()
         }
     }
@@ -242,12 +211,6 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun updateRefreshInterval(seconds: Int) {
-        viewModelScope.launch {
-            userPreferencesRepository.saveRefreshInterval(seconds)
-        }
-    }
-
     fun clearSearchResults() {
         _uiState.update { it.copy(searchResults = emptyList(), isSearching = false, currentQuery = "") }
     }
@@ -265,7 +228,7 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             try {
                 val results = aggregateStationData(favoriteStationInfos)
                 _uiState.update { it.copy(favoriteStations = results) }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update { it.copy(errorMessage = "無法更新即時車輛資訊") }
             }
         }
