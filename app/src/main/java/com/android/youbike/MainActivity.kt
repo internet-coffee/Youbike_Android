@@ -1,6 +1,5 @@
 package com.android.youbike
 
-import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import android.widget.Toast
@@ -10,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,12 +33,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,14 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -68,8 +58,6 @@ import androidx.navigation.compose.rememberNavController
 import com.android.youbike.ui.theme.YoubikeTheme
 import components.MySearchBar
 import data.StationInfo
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import screens.SettingsScreen
 import viewmodel.StationResult
 import viewmodel.ViewModelFactory
@@ -79,27 +67,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            var followSystemTheme by remember { mutableStateOf(true) }
-            var isDarkMode by remember { mutableStateOf(false) }
-            val useDarkTheme = when {
-                followSystemTheme -> isSystemInDarkTheme()
-                else -> isDarkMode
-            }
-            val view = LocalView.current
-            if (!view.isInEditMode) {
-                SideEffect {
-                    val window = (view.context as Activity).window
-                    val insetsController = WindowCompat.getInsetsController(window, view)
-                    insetsController.isAppearanceLightStatusBars = !useDarkTheme
-                }
-            }
 
-            YoubikeTheme(darkTheme = useDarkTheme) {
+        setContent {
+            YoubikeTheme {
                 val navController = rememberNavController()
-                val context = LocalContext.current
                 val viewModel: YouBikeViewModel = viewModel(
-                    factory = ViewModelFactory(context.applicationContext as Application)
+                    factory = ViewModelFactory(applicationContext as Application)
                 )
 
                 NavHost(navController = navController, startDestination = "main") {
@@ -110,20 +83,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("settings") {
-                        val currentInterval by viewModel.userPreferencesRepository.refreshInterval.collectAsState(
-                            initial = 0
-                        )
+                        val currentInterval by viewModel.userPreferencesRepository
+                            .refreshInterval.collectAsState(initial = 0)
+
                         SettingsScreen(
                             navController = navController,
-                            followSystemTheme = followSystemTheme,
-                            isDarkMode = isDarkMode,
-                            onFollowSystemChange = { followSystemTheme = it },
-                            onDarkModeChange = { isDarkMode = it },
                             currentInterval = currentInterval,
                             onIntervalSelected = { seconds ->
-                                viewModel.viewModelScope.launch {
-                                    viewModel.userPreferencesRepository.saveRefreshInterval(seconds)
-                                }
+                                viewModel.updateRefreshInterval(seconds)
                             }
                         )
                     }
@@ -140,38 +107,11 @@ fun MainScreen(
     viewModel: YouBikeViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val currentInterval by viewModel.userPreferencesRepository.refreshInterval.collectAsState(
-        initial = 0
-    )
-    val stableOnFavoriteToggle: (StationInfo) -> Unit = remember(viewModel) {
-        { stationInfo -> viewModel.toggleFavorite(stationInfo) }
-    }
-
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     var query by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(currentInterval) {
-        if (currentInterval > 0) {
-            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (true) {
-                    delay(currentInterval * 1000L)
-                    val uiState = viewModel.uiState.value
-                    if (!uiState.isRefreshing) {
-                        if (uiState.isSearching) {
-                            viewModel.refreshSearchResults(uiState.currentQuery)
-                        } else {
-                            viewModel.refreshFavoriteStations()
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    LaunchedEffect(key1 = uiState.toastMessage) {
+    LaunchedEffect(uiState.toastMessage) {
         uiState.toastMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             viewModel.clearToastMessage()
@@ -186,90 +126,105 @@ fun MainScreen(
     Scaffold(
         topBar = {
             MySearchBar(
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = 16.dp),
+                modifier = Modifier.statusBarsPadding().padding(top = 16.dp),
                 query = query,
                 onQueryChange = { query = it },
                 onSettingsClicked = { navController.navigate("settings") },
-                onSearch = {
-                    viewModel.searchStations(query)
-                }
+                onSearch = { viewModel.searchStations(query) }
             )
         }
     ) { innerPadding ->
-        Surface(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    focusManager.clearFocus()
-                },
-            color = MaterialTheme.colorScheme.background
+                .padding(top = innerPadding.calculateTopPadding())
         ) {
             PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
                 isRefreshing = uiState.isRefreshing,
-                onRefresh = { viewModel.triggerManualRefresh() }
+                onRefresh = { viewModel.triggerManualRefresh() },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { focusManager.clearFocus() }
             ) {
-                val stationsToShow =
-                    if (uiState.isSearching) uiState.searchResults else uiState.favoriteStations
+                val stationsToShow = if (uiState.isSearching) uiState.searchResults else uiState.favoriteStations
+
                 when {
                     uiState.isLoading && stationsToShow.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
+                        LoadingPlaceholder()
                     }
 
                     uiState.errorMessage != null -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = uiState.errorMessage!!,
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
+                        ErrorPlaceholder(uiState.errorMessage!!)
                     }
 
                     stationsToShow.isNotEmpty() -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(horizontal = 16.dp)
-                        ) {
-                            items(
-                                items = stationsToShow,
-                                key = { it.info.stationNo },
-                                contentType = { "station_item" }
-                            ) { result ->
-                                StationResultItem(
-                                    result = result,
-                                    onFavoriteClicked = stableOnFavoriteToggle
-                                )
-                            }
-                        }
+                        StationList(
+                            stations = stationsToShow,
+                            onFavoriteToggle = { viewModel.toggleFavorite(it) },
+                            contentPadding = innerPadding
+                        )
                     }
 
                     else -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val message =
-                                if (uiState.isSearching) "找不到符合條件的站點" else "點擊卡片右上角的愛心來收藏站點"
-                            Text(text = message, modifier = Modifier.padding(16.dp))
+                        if (!uiState.isLoading) {
+                            EmptyPlaceholder(isSearching = uiState.isSearching)
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StationList(
+    stations: List<viewmodel.StationResult>,
+    onFavoriteToggle: (data.StationInfo) -> Unit,
+    contentPadding: PaddingValues
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 8.dp,
+            bottom = contentPadding.calculateBottomPadding() + 8.dp
+        )
+    ) {
+        items(
+            items = stations,
+            key = { it.info.stationNo }
+        ) { result ->
+            StationResultItem(
+                result = result,
+                onFavoriteClicked = onFavoriteToggle
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoadingPlaceholder() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun ErrorPlaceholder(message: String) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(text = message, color = MaterialTheme.colorScheme.error)
+    }
+}
+
+@Composable
+private fun EmptyPlaceholder(isSearching: Boolean) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val message = if (isSearching) "找不到符合條件的站點" else "點擊卡片右上角的愛心來收藏站點"
+        Text(text = message, modifier = Modifier.padding(16.dp))
     }
 }
 
@@ -298,6 +253,7 @@ fun StationResultItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
@@ -307,6 +263,7 @@ fun StationResultItem(
                     BikeInfo("可停空位", result.emptySpaces?.toString() ?: "--")
                 }
             }
+
             IconButton(
                 onClick = { onFavoriteClicked(result.info) },
                 modifier = Modifier.align(Alignment.TopEnd)
@@ -325,6 +282,9 @@ fun StationResultItem(
 fun BikeInfo(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = label, style = MaterialTheme.typography.bodySmall)
-        Text(text = value, style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge
+        )
     }
 }

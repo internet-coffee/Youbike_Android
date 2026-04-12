@@ -20,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -37,10 +36,6 @@ import androidx.navigation.NavController
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    followSystemTheme: Boolean,
-    isDarkMode: Boolean,
-    onFollowSystemChange: (Boolean) -> Unit,
-    onDarkModeChange: (Boolean) -> Unit,
     currentInterval: Int,
     onIntervalSelected: (Int) -> Unit
 ) {
@@ -66,20 +61,6 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SettingsSection(title = "外觀") {
-                SettingsSwitchItem(
-                    title = "跟隨系統主題",
-                    checked = followSystemTheme,
-                    onCheckedChange = onFollowSystemChange
-                )
-                SettingsSwitchItem(
-                    title = "深色模式",
-                    checked = isDarkMode,
-                    onCheckedChange = onDarkModeChange,
-                    enabled = !followSystemTheme
-                )
-            }
-
             SettingsSection(title = "資料") {
                 RefreshIntervalDropdown(
                     currentInterval = currentInterval,
@@ -178,34 +159,5 @@ private fun RefreshIntervalDropdown(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SettingsSwitchItem(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.38f
-            )
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled
-        )
     }
 }

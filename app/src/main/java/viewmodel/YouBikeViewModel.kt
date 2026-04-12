@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 private data class SearchIndex(
     val info: StationInfo,
@@ -59,8 +62,36 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
     private var allStationsCache: List<StationInfo>? = null
     private var stationIdMap: Map<String, StationInfo> = emptyMap()
     private var searchableIndex: List<SearchIndex> = emptyList()
+    private var refreshJob: Job? = null
 
     val userPreferencesRepository = UserPreferencesRepository(application)
+
+    init {
+        startAutoRefreshTimer()
+    }
+
+    private fun startAutoRefreshTimer() {
+        viewModelScope.launch {
+            userPreferencesRepository.refreshInterval.collectLatest { interval ->
+                refreshJob?.cancel() // 取消舊任務
+
+                if (interval > 0) {
+                    refreshJob = launch {
+                        while (true) {
+                            delay(interval * 1000L)
+                            if (!uiState.value.isRefreshing) {
+                                if (uiState.value.isSearching) {
+                                    refreshSearchResults(uiState.value.currentQuery)
+                                } else {
+                                    refreshFavoriteStations()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -208,6 +239,12 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                 },
                 updateState = { results -> _uiState.value.copy(searchResults = results) }
             )
+        }
+    }
+
+    fun updateRefreshInterval(seconds: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.saveRefreshInterval(seconds)
         }
     }
 
