@@ -24,9 +24,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.android.youbike.R
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -53,7 +55,7 @@ fun MySearchBar(
                     keyboardController?.hide()
                 }
             },
-        placeholder = { Text("搜尋 YouBike 站點") },
+        placeholder = { Text(stringResource(R.string.search_placeholder)) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,

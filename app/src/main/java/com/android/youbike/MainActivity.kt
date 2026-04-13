@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -217,7 +218,7 @@ private fun ErrorPlaceholder(message: String) {
 @Composable
 private fun EmptyPlaceholder(isSearching: Boolean) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        val message = if (isSearching) "找不到符合條件的站點" else "點擊卡片右上角的愛心來收藏站點"
+        val message = if (isSearching) stringResource(R.string.search_no_results) else stringResource(R.string.favorite_empty_hint)
         Text(text = message, modifier = Modifier.padding(16.dp))
     }
 }
@@ -264,7 +265,7 @@ fun StationResultItem(
             ) {
                 Icon(
                     imageVector = if (result.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                    contentDescription = "收藏",
+                    contentDescription = stringResource(R.string.favorite_icon_desc),
                     tint = if (result.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

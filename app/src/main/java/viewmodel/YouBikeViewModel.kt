@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.youbike.R
 import data.StationInfo
 import data.StationRequest
 import data.UserPreferencesRepository
@@ -137,7 +138,8 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                 val favoriteIds = userPreferencesRepository.favoriteStations.first().map { it.stationNo }.toSet()
                 fetchParkingInfoForSearch(stationsToQuery, favoriteIds)
             }.onFailure { e ->
-                _uiState.update { it.copy(isLoading = false, errorMessage = "發生錯誤：${e.message}") }
+                _uiState.update { it.copy(isLoading = false, errorMessage = getApplication<Application>().getString(
+                    R.string.error_generic, e.message)) }
             }
         }
     }
@@ -165,12 +167,12 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             val stations = fetchStations()
             if (stations.isNotEmpty()) {
                 val results = aggregateStationData(stations)
-                _uiState.update { updateState(results).copy(isRefreshing = false, toastMessage = "刷新成功", errorMessage = null) }
+                _uiState.update { updateState(results).copy(isRefreshing = false, toastMessage = getApplication<Application>().getString(R.string.refresh_success), errorMessage = null) }
             } else {
                 _uiState.update { it.copy(isRefreshing = false, errorMessage = null) }
             }
         }.onFailure {
-            _uiState.update { it.copy(isRefreshing = false, toastMessage = "刷新失敗") }
+            _uiState.update { it.copy(isRefreshing = false, toastMessage = getApplication<Application>().getString(R.string.refresh_failed)) }
         }
     }
 
@@ -229,7 +231,7 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                 val results = aggregateStationData(favoriteStationInfos)
                 _uiState.update { it.copy(favoriteStations = results) }
             } catch (_: Exception) {
-                _uiState.update { it.copy(errorMessage = "無法更新即時車輛資訊") }
+                _uiState.update { it.copy(errorMessage = getApplication<Application>().getString(R.string.error_update_failed)) }
             }
         }
     }

@@ -1,3 +1,20 @@
 <resources>
-    <string name="app_name">Youbike</string>
+    <string name="app_name">YouBike</string>
+    <string name="app_description">YouBike 站點查詢（非官方）</string>
+
+    <string name="search_placeholder">搜尋 YouBike 站點</string>
+    <string name="search_no_results">找不到符合條件的站點</string>
+    <string name="search_failed">搜尋失敗</string>
+
+    <string name="favorite_empty_hint">點擊卡片右上角的愛心來收藏站點</string>
+    <string name="favorite_icon_desc">收藏</string>
+    <string name="refresh_success">刷新成功</string>
+    <string name="refresh_failed">刷新失敗</string>
+    <string name="error_update_failed">無法更新即時車輛資訊</string>
+    <string name="error_generic">發生錯誤：%1$s</string>
+
+    <string name="settings_title">設定</string>
+    <string name="settings_about">關於</string>
+    <string name="settings_version">版本</string>
+    <string name="back_icon_desc">返回</string>
 </resources>
