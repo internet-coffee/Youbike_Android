@@ -165,9 +165,9 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             val stations = fetchStations()
             if (stations.isNotEmpty()) {
                 val results = aggregateStationData(stations)
-                _uiState.update { updateState(results).copy(isRefreshing = false, toastMessage = "刷新成功") }
+                _uiState.update { updateState(results).copy(isRefreshing = false, toastMessage = "刷新成功", errorMessage = null) }
             } else {
-                _uiState.update { it.copy(isRefreshing = false) }
+                _uiState.update { it.copy(isRefreshing = false, errorMessage = null) }
             }
         }.onFailure {
             _uiState.update { it.copy(isRefreshing = false, toastMessage = "刷新失敗") }
