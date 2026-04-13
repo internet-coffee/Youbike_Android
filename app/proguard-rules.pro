@@ -20,8 +20,6 @@
     *** $serializer;
 }
 
--keep class data.** { *; }
-
 -keep class viewmodel.YouBikeUiState { *; }
 -keep class viewmodel.StationResult { *; }
 
