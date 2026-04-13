@@ -2,6 +2,10 @@
     <string name="app_name">YouBike</string>
     <string name="app_description">YouBike 站點查詢（非官方）</string>
 
+    <string name="label_youbike_2_0">YouBike 2.0</string>
+    <string name="label_youbike_2_0e">YouBike 2.0E</string>
+    <string name="label_empty_spaces">可停空位</string>
+
     <string name="search_placeholder">搜尋 YouBike 站點</string>
     <string name="search_no_results">找不到符合條件的站點</string>
     <string name="search_failed">搜尋失敗</string>

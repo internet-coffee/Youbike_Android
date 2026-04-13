@@ -123,7 +123,9 @@ fun MainScreen(
     Scaffold(
         topBar = {
             MySearchBar(
-                modifier = Modifier.statusBarsPadding().padding(top = 16.dp),
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(top = 16.dp),
                 query = query,
                 onQueryChange = { query = it },
                 onSettingsClicked = { navController.navigate("settings") },
@@ -146,7 +148,8 @@ fun MainScreen(
                         indication = null
                     ) { focusManager.clearFocus() }
             ) {
-                val stationsToShow = if (uiState.isSearching) uiState.searchResults else uiState.favoriteStations
+                val stationsToShow =
+                    if (uiState.isSearching) uiState.searchResults else uiState.favoriteStations
 
                 when {
                     uiState.isLoading && stationsToShow.isEmpty() -> {
@@ -210,7 +213,12 @@ private fun LoadingPlaceholder() {
 
 @Composable
 private fun ErrorPlaceholder(message: String) {
-    Box(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center
+    ) {
         Text(text = message, color = MaterialTheme.colorScheme.error)
     }
 }
@@ -218,7 +226,8 @@ private fun ErrorPlaceholder(message: String) {
 @Composable
 private fun EmptyPlaceholder(isSearching: Boolean) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        val message = if (isSearching) stringResource(R.string.search_no_results) else stringResource(R.string.favorite_empty_hint)
+        val message =
+            if (isSearching) stringResource(R.string.search_no_results) else stringResource(R.string.favorite_empty_hint)
         Text(text = message, modifier = Modifier.padding(16.dp))
     }
 }
@@ -253,9 +262,18 @@ fun StationResultItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
-                    BikeInfo("YouBike 2.0", result.availableBikes?.toString() ?: "--")
-                    BikeInfo("YouBike 2.0E", result.availableEBikes?.toString() ?: "--")
-                    BikeInfo("可停空位", result.emptySpaces?.toString() ?: "--")
+                    BikeInfo(
+                        stringResource(R.string.label_youbike_2_0),
+                        result.availableBikes?.toString() ?: "--"
+                    )
+                    BikeInfo(
+                        stringResource(R.string.label_youbike_2_0e),
+                        result.availableEBikes?.toString() ?: "--"
+                    )
+                    BikeInfo(
+                        stringResource(R.string.label_empty_spaces),
+                        result.emptySpaces?.toString() ?: "--"
+                    )
                 }
             }
 
