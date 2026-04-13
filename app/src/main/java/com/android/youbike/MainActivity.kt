@@ -156,7 +156,7 @@ fun MainScreen(
                         LoadingPlaceholder()
                     }
 
-                    uiState.errorMessage != null -> {
+                    uiState.errorMessage != null && stationsToShow.isEmpty() -> {
                         ErrorPlaceholder(uiState.errorMessage!!)
                     }
 

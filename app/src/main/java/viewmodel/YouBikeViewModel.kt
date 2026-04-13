@@ -44,7 +44,7 @@ data class YouBikeUiState(
     val searchResults: List<StationResult> = emptyList(),
     val favoriteStations: List<StationResult> = emptyList(),
     val isSearching: Boolean = false,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
     val toastMessage: String? = null,
@@ -257,14 +257,14 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
     private fun loadAndRefreshFavoriteStations(favoriteStationInfos: List<StationInfo>) {
         viewModelScope.launch {
             if (favoriteStationInfos.isEmpty()) {
-                _uiState.update { it.copy(favoriteStations = emptyList()) }
+                _uiState.update { it.copy(favoriteStations = emptyList(), isLoading = false) }
                 return@launch
             }
             try {
                 val results = aggregateStationData(favoriteStationInfos)
-                _uiState.update { it.copy(favoriteStations = results) }
+                _uiState.update { it.copy(favoriteStations = results, isLoading = false) }
             } catch (_: Exception) {
-                _uiState.update { it.copy(errorMessage = getApplication<Application>().getString(R.string.error_update_failed)) }
+                _uiState.update { it.copy(errorMessage = getApplication<Application>().getString(R.string.error_update_failed), isLoading = false) }
             }
         }
     }
