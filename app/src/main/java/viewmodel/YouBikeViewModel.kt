@@ -210,9 +210,9 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             StationResult(
                 info = info,
                 isFavorite = info.stationNo in favoriteIds,
-                availableBikes = vehicleInfo?.vehicleDetails?.youbike2 ?: 0,
-                availableEBikes = vehicleInfo?.vehicleDetails?.youbike2E ?: 0,
-                emptySpaces = vehicleInfo?.emptySpaces ?: 0
+                availableBikes = vehicleInfo?.vehicleDetails?.youbike2,
+                availableEBikes = vehicleInfo?.vehicleDetails?.youbike2E,
+                emptySpaces = vehicleInfo?.emptySpaces
             )
         }
     }
@@ -291,7 +291,7 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
             }
             _uiState.update { it.copy(searchResults = results, isLoading = false) }
         }.onFailure {
-            _uiState.update { it.copy(isLoading = false, errorMessage = "搜尋失敗") }
+            _uiState.update { it.copy(isLoading = false, errorMessage = getApplication<Application>().getString(R.string.search_failed)) }
         }
     }
 
