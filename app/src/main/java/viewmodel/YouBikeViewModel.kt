@@ -298,7 +298,7 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
     private suspend fun fetchVehicleData(stations: List<StationInfo>): Map<String, VehicleInfo> =
         withContext(Dispatchers.IO) {
             val stationIds = stations.map { it.stationNo }
-            val chunks = stationIds.chunked(50)
+            val chunks = stationIds.chunked(20)
 
             val results = chunks.map { batchIds ->
                 async {
@@ -312,6 +312,8 @@ class YouBikeViewModel(application: Application) : AndroidViewModel(application)
                 throw IOException("網路連線失敗")
             }
 
-            results.flatMap { it.retVal.data }.associateBy { it.stationNo }
+            results.flatMap { response ->
+                results.flatMap { it.retVal.data }
+            }.associateBy { it.stationNo }
         }
 }
