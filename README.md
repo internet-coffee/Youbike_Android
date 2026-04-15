@@ -20,12 +20,6 @@
 
 <img src="screenshots/light.png" alt="Light Mode" width="48%"/> <img src="screenshots/dark.png" alt="Dark Mode" width="48%"/>
 
-## 主要功能
-
-* **黑暗模式**
-* **跟隨系統主題**
-* **自動刷新**
-
 ## 其他
 
 * **資料來源**：[YouBike 官網](https://www.youbike.com.tw)。
